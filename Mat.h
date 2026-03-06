@@ -34,7 +34,7 @@ public:
 	Mat diag();
 	Mat eye(int n);
 	Mat ones(int h, int w);
-	Mat inverse();
+	Mat transpose();
 	Mat plus(const Mat& m);
 	Mat minus(const Mat& m);
 	Mat mult(const Mat& m);
