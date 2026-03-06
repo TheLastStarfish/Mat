@@ -1,6 +1,6 @@
 #include "Mat.h"
 #include <cstring>
-#include <exception>
+#include <stdexcept>
 #include <cmath>
 #include <algorithm>
 
@@ -34,8 +34,8 @@ Mat::Mat(int h, int w) :p_Date(nullptr), H(0), W(0)
 Mat::Mat(const Mat& m, int y1, int x1, int y2, int x2) :p_Date(nullptr), H(0), W(0)
 {
 	if (y1 < 0 || x1 < 0 || y2 < 0 || x2 < 0
-		|| y1 >= H || x1 >= W || y2 >= H || x2 >= W)
-		throw std::exception("子矩阵坐标越界");
+		|| y1 >= m.H || x1 >= m.W || y2 >= m.H || x2 >= m.W)
+		throw std::runtime_error("Submatrix index out of bounds");
 	if (y1 > y2) std::swap(y1, y2);
 	if (x1 > x2) std::swap(x1, x2);
 
@@ -55,7 +55,7 @@ Mat::~Mat()
 void Mat::create(int h, int w)
 {
 	if(h == 0 || w == 0)
-		throw std::exception("长度不能为0");
+		throw std::runtime_error("Dimensions cannot be zero");
 	if (p_Date != nullptr)
 		distroy();
 	p_Date = new double[h * w] {};
@@ -87,6 +87,7 @@ void Mat::load(double** ppDate, int h, int w)
 
 void Mat::load(const Mat& m)
 {
+	if (this == &m) return;
 	create(m.H, m.W);
 	memcpy(p_Date, m.p_Date, sizeof(double) * H * W);
 }
@@ -94,7 +95,7 @@ void Mat::load(const Mat& m)
 void Mat::setCol(double* pDate, int x)
 {
 	if (x < 0 || x >= W)
-		throw std::exception("列索引越界");
+		throw std::runtime_error("Column index out of bounds");
 	for (int i = 0; i < H; i++)
 		p_Date[i * W + x] = pDate[i];
 }
@@ -102,7 +103,7 @@ void Mat::setCol(double* pDate, int x)
 void Mat::setRow(double* pDate, int y)
 {
 	if (y < 0 || y >= H)
-		throw std::exception("行索引越界");
+		throw std::runtime_error("Row index out of bounds");
 	memcpy(p_Date + y * W, pDate, sizeof(double) * W);
 }
 
@@ -115,7 +116,7 @@ void Mat::copyTo(Mat& m, int y1, int x1, int y2, int x2)
 {
 	if (y1 < 0 || x1 < 0 || y2 < 0 || x2 < 0 
 		|| y1 >= H || x1 >= W || y2 >= H || x2 >= W)
-		throw std::exception("子矩阵坐标越界");
+		throw std::runtime_error("Submatrix index out of bounds");
 	if (y1 > y2) std::swap(y1, y2);
 	if (x1 > x2) std::swap(x1, x2);
 	int h = y2 - y1 + 1;
@@ -128,7 +129,7 @@ void Mat::copyTo(Mat& m, int y1, int x1, int y2, int x2)
 void Mat::set(double data, int y, int x)
 {
 	if (y < 0 || x < 0 || y >= H || x >= W)
-		throw std::exception("索引越界");
+		throw std::runtime_error("Index out of bounds");
 	p_Date[y * W + x] = data;
 }
 
@@ -158,7 +159,7 @@ Mat Mat::clone()
 Mat Mat::getCol(int x)
 {
 	if (x < 0 || x >= W)
-		throw std::exception("列索引越界");
+		throw std::runtime_error("Column index out of bounds");
 	Mat m(H, 1);
 	for (int i = 0; i < H; i++)
 		m.p_Date[i] = p_Date[i * W + x];
@@ -168,7 +169,7 @@ Mat Mat::getCol(int x)
 Mat Mat::getRow(int y)
 {
 	if (y < 0 || y >= H)
-		throw std::exception("行索引越界");
+		throw std::runtime_error("Row index out of bounds");
 	Mat m(1, W);
 	memcpy(m.p_Date, p_Date + y * W, sizeof(double) * W);
 	return m;
@@ -204,7 +205,7 @@ Mat Mat::ones(int h, int w)
 	return m;
 }
 
-Mat Mat::inverse()
+Mat Mat::transpose()
 {
 	Mat m(W, H);
 	for(int i = 0; i < H; i++)
@@ -216,7 +217,7 @@ Mat Mat::inverse()
 Mat Mat::plus(const Mat& m)
 {
 	if (H != m.H || W != m.W)
-		throw std::exception("矩阵维度不匹配");
+		throw std::runtime_error("Matrix dimensions do not match");
 	Mat r(H, W);
 	for (int i = 0; i < H * W; i++)
 		r.p_Date[i] = p_Date[i] + m.p_Date[i];
@@ -226,7 +227,7 @@ Mat Mat::plus(const Mat& m)
 Mat Mat::minus(const Mat& m)
 {
 	if (H != m.H || W != m.W)
-		throw std::exception("矩阵维度不匹配");
+		throw std::runtime_error("Matrix dimensions do not match");
 	Mat r(H, W);
 	for (int i = 0; i < H * W; i++)
 		r.p_Date[i] = p_Date[i] - m.p_Date[i];
@@ -236,7 +237,7 @@ Mat Mat::minus(const Mat& m)
 Mat Mat::mult(const Mat& m)
 {
 	if (H != m.H || W != m.W)
-		throw std::exception("矩阵维度不匹配");
+		throw std::runtime_error("Matrix dimensions do not match");
 	Mat r(H, W);
 	for (int i = 0; i < H * W; i++)
 		r.p_Date[i] = p_Date[i] * m.p_Date[i];
@@ -246,7 +247,7 @@ Mat Mat::mult(const Mat& m)
 Mat Mat::div(const Mat& m)
 {
 	if (H != m.H || W != m.W)
-		throw std::exception("矩阵维度不匹配");
+		throw std::runtime_error("Matrix dimensions do not match");
 	Mat r(H, W);
 	for (int i = 0; i < H * W; i++)
 		r.p_Date[i] = p_Date[i] / m.p_Date[i];
@@ -256,7 +257,7 @@ Mat Mat::div(const Mat& m)
 Mat Mat::matchInRow(const Mat m)
 {
 	if (H != m.H)
-		throw std::exception("行数不匹配");
+		throw std::runtime_error("Row counts do not match");
 	Mat r(H, W + m.W);
 	for (int i = 0; i < H; i++) {
 		memcpy(r.p_Date + i * r.W, p_Date + i * W, sizeof(double) * W);
@@ -268,7 +269,7 @@ Mat Mat::matchInRow(const Mat m)
 Mat Mat::matchInCol(const Mat m)
 {
 	if (W != m.W)
-		throw std::exception("列数不匹配");
+		throw std::runtime_error("Column counts do not match");
 	Mat r(H + m.H, W);
 	for(int i = 0; i < H; i++)
 		memcpy(r.p_Date + i * W, p_Date + i * W, sizeof(double) * W);
@@ -299,7 +300,7 @@ double Mat::sum(int y1, int x1, int y2, int x2)
 {
 	if (y1 < 0 || x1 < 0 || y2 < 0 || x2 < 0
 		|| y1 >= H || x1 >= W || y2 >= H || x2 >= W)
-		throw std::exception("子矩阵坐标越界");
+		throw std::runtime_error("Submatrix index out of bounds");
 	if (y1 > y2) std::swap(y1, y2);
 	if (x1 > x2) std::swap(x1, x2);
 	double s = 0;
@@ -312,28 +313,32 @@ double Mat::sum(int y1, int x1, int y2, int x2)
 double Mat::get(int y, int x)
 {
 	if (y < 0 || x < 0 || y >= H || x >= W)
-		throw std::exception("索引越界");
+		throw std::runtime_error("Index out of bounds");
 	return p_Date[y * W + x];
 }
 
+// Returns an array of H values: s[i] is the sum of all elements in row i.
+// Caller must delete[] the returned array.
 double* Mat::sumInRow()
-{
-	double* s = new double[W];
-	for(int j = 0; j < W; j++) {
-		s[j] = 0;
-		for (int i = 0; i < H; i++)
-			s[j] += p_Date[i * W + j];
-	}
-	return s;
-}
-
-double* Mat::sumInCol()
 {
 	double* s = new double[H];
 	for (int i = 0; i < H; i++) {
 		s[i] = 0;
 		for (int j = 0; j < W; j++)
 			s[i] += p_Date[i * W + j];
+	}
+	return s;
+}
+
+// Returns an array of W values: s[j] is the sum of all elements in column j.
+// Caller must delete[] the returned array.
+double* Mat::sumInCol()
+{
+	double* s = new double[W];
+	for(int j = 0; j < W; j++) {
+		s[j] = 0;
+		for (int i = 0; i < H; i++)
+			s[j] += p_Date[i * W + j];
 	}
 	return s;
 }
