@@ -3,7 +3,7 @@
 class Mat
 {
 private:
-	double* p_Date;
+	double* p_Data;
 	int H, W;
 
 public:
